@@ -9,6 +9,7 @@ alembic = "*"
 sqlalchemy = "*"
 pydantic-settings = "*"
 asyncpg = "*"
+passlib = {extras = ["bcrypt"], version = "*"}
 
 [dev-packages]
 
