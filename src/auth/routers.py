@@ -1,8 +1,11 @@
+from datetime import timedelta
 from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src.auth.service import UserService
-from src.auth.utils import authenticate_user
+from src.auth.utils import authenticate_user, create_access_token
+from src.config import Config
 from src.db.main import get_db_session
 from src.auth.schemas import UserCreationSchema, UserLoginSchema
 
@@ -46,15 +49,43 @@ async def login_user(
 
     if user is not None:
         if authenticate_user(user, password):
-            return {'Authenticate successfully.'}
-        
+            access_token = create_access_token(
+                user_data={
+                    'email': user.email,
+                    'user_uid': str(user.uid)
+                },
+                expires_delta=timedelta(
+                    minutes=Config.ACCESS_TOKEN_EXPIRE_MINUTES
+                )
+            )
+            refresh_token = create_access_token(
+                user_data={
+                    'email': user.email,
+                    'user_uid': str(user.uid)
+                },
+                expires_delta=timedelta(
+                    days=Config.REFRESH_TOKEN_EXPIRE_DAYS
+                ),
+                refresh=True
+            )
+            return JSONResponse(
+                content={
+                    'message': 'Login Successfully.',
+                    'access_token': access_token,
+                    'refresh_token': refresh_token,
+                    'user': {
+                        'email': user.email,
+                        'uid': str(user.uid)
+                    }
+                },
+            )
+
         raise HTTPException(
             detail='Invalid Password or Email',
             status_code=status.HTTP_403_FORBIDDEN
         )
-    
+
     raise HTTPException(
         detail='User with this email does not exists.',
         status_code=status.HTTP_403_FORBIDDEN
     )
-    

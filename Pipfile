@@ -10,6 +10,7 @@ sqlalchemy = "*"
 pydantic-settings = "*"
 asyncpg = "*"
 passlib = {extras = ["bcrypt"], version = "*"}
+pyjwt = "*"
 
 [dev-packages]
 
