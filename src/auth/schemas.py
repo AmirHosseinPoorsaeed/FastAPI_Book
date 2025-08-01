@@ -7,3 +7,8 @@ class UserCreationSchema(BaseModel):
     first_name: str = Field(max_length=40)
     last_name: str = Field(max_length=40)
     password: str = Field(min_length=8, exclude=True)
+
+
+class UserLoginSchema(BaseModel):
+    email: str
+    password: str
