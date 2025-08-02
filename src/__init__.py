@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from src.db.main import sessionmanager
 from src.config import Config
 from src.auth.routers import auth_router
+from src.books.routers import book_router
 
 
 @asynccontextmanager
@@ -23,4 +24,7 @@ app = FastAPI(
 
 app.include_router(
     auth_router, prefix=f'/api/{Config.VERSION}/auth', tags=['auth']
+)
+app.include_router(
+    book_router, prefix=f'/api/{Config.VERSION}/books', tags=['books']
 )
