@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel, Field
 
 
@@ -12,3 +13,15 @@ class UserCreationSchema(BaseModel):
 class UserLoginSchema(BaseModel):
     email: str
     password: str
+
+
+class UserBaseSchema(BaseModel):
+    username: str
+    email: str
+    first_name: str
+    last_name: str
+
+
+class UserDetailSchema(UserBaseSchema):
+    uid: uuid.UUID
+

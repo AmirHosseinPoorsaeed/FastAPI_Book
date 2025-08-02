@@ -1,7 +1,10 @@
-from fastapi import HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer
+from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from src.auth.service import UserService
 from src.auth.utils import decode_token
+from src.db.main import get_db_session
 
 
 class JWTBearer(HTTPBearer):
@@ -50,3 +53,12 @@ class AccessTokenBearer(JWTBearer):
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail='Please Provide an access token'
             )
+
+
+async def get_current_user(
+    token_detail: dict = Depends(AccessTokenBearer()),
+    session: AsyncSession = Depends(get_db_session)
+):
+    user_email = token_detail['user']['email']
+    user = await UserService(session).get_user_by_email(user_email)
+    return user
