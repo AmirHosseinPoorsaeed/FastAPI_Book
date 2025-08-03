@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src.auth.dependencies import AccessTokenBearer
-from src.books.schemas import BookBaseSchema, BookCreationSchema, BookDetailSchema
+from src.books.schemas import BookBaseSchema, BookCreationSchema, BookDetailSchema, BookUpdateSchema
 from src.books.service import BookService
 from src.db.main import get_db_session
 
@@ -55,3 +55,45 @@ async def book_create(
     user_uid = token_detail['user']['user_uid']
     new_book = await BookService(session).create_book(user_uid, book_data)
     return new_book
+
+
+@book_router.patch(
+    '/{book_uid}',
+    response_model=BookBaseSchema,
+    status_code=status.HTTP_200_OK
+)
+async def update_book(
+    book_uid: str,
+    book_update_data: BookUpdateSchema,
+    session: AsyncSession = Depends(get_db_session)
+):
+    updated_book = await BookService(session).update_book(
+        book_uid, book_update_data
+    )
+
+    if updated_book is not None:
+        return updated_book
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Book Not Found.'
+        )
+
+
+@book_router.delete(
+    '/{book_uid}',
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_book(
+    book_uid: str,
+    session: AsyncSession = Depends(get_db_session)
+):
+    deleted_book = await BookService(session).delete_book(book_uid)
+
+    if deleted_book is not None:
+        return None
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Book Not Found.'
+        )

@@ -30,3 +30,12 @@ class BookCreationSchema(BaseModel):
     published_date: datetime
     page_count: int
     language: str
+
+
+class BookUpdateSchema(BaseModel):
+    title: str
+    author: str
+    publisher: str
+    published_date: datetime
+    page_count: int
+    language: str

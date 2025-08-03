@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy import select, desc
 
-from src.books.schemas import BookCreationSchema
+from src.books.schemas import BookCreationSchema, BookUpdateSchema
 from src.db.models import Book
 
 
@@ -38,3 +38,32 @@ class BookService:
         await self.session.commit()
         await self.session.refresh(new_book)
         return new_book
+    
+    async def update_book(
+        self,
+        book_uid: str,
+        book_update_data: BookUpdateSchema
+    ):
+        book = await self.get_book_by_uid(book_uid)
+
+        if book is not None:
+            for key, value in book_update_data.model_dump().items():
+                setattr(book, key, value)
+            await self.session.commit()
+            await self.session.refresh(book)
+            return book
+        else:
+            return None
+    
+    async def delete_book(
+        self,
+        book_uid: str
+    ):
+        book = await self.get_book_by_uid(book_uid)
+
+        if book is not None:
+            await self.session.delete(book)
+            await self.session.commit()
+            return {}
+        else:
+            return None
