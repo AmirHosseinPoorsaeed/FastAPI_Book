@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src.auth.dependencies import RefreshTokenBearer, get_current_user
 from src.auth.service import UserService
-from src.auth.utils import authenticate_user, create_access_token
+from src.auth.utils import authenticate_user, create_access_token, get_password_hash, verify_password
 from src.config import Config
 from src.db.main import get_db_session
-from src.auth.schemas import UserBaseSchema, UserCreationSchema, UserDetailSchema, UserLoginSchema
+from src.auth.schemas import UserBaseSchema, UserChangePasswordSchema, UserCreationSchema, UserDetailSchema, UserLoginSchema
 from src.db.models import User
 
 
@@ -127,3 +127,42 @@ async def get_user(
     user: User = Depends(get_current_user)
 ):
     return user
+
+
+@auth_router.post(
+    '/change_password',
+    status_code=status.HTTP_200_OK
+)
+async def change_password_user(
+    change_password_data: UserChangePasswordSchema,
+    session: AsyncSession = Depends(get_db_session),
+    current_user: User = Depends(get_current_user)
+):
+    old_password = change_password_data.old_password
+    new_password = change_password_data.new_password
+    confirm_new_password = change_password_data.confirm_new_password
+
+    if not verify_password(old_password, current_user.password_hash):
+        raise HTTPException(
+            detail='Password is not correct.',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    if not new_password == confirm_new_password:
+        raise HTTPException(
+            detail='Password is not match.',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    password_hash = get_password_hash(new_password)
+
+    await UserService(session).update_user(
+        current_user, {'password_hash': password_hash}
+    )
+
+    return JSONResponse(
+        content={
+            'message': 'Password has been changed successfully.'
+        },
+        status_code=status.HTTP_200_OK
+    )

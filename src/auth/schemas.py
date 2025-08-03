@@ -25,3 +25,8 @@ class UserBaseSchema(BaseModel):
 class UserDetailSchema(UserBaseSchema):
     uid: uuid.UUID
 
+
+class UserChangePasswordSchema(BaseModel):
+    old_password: str
+    new_password: str = Field(min_length=8)
+    confirm_new_password: str = Field(min_length=8)
